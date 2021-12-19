@@ -1,4 +1,6 @@
-CORE_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+MIX_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+
+. "${MIX_DIR}/func.sh"
 
 opt_n=1
 while :; do

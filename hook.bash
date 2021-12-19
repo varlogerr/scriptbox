@@ -1,4 +1,3 @@
-echo "${1}"
 while read -r l; do
   [[ -n "${l}" ]] && . "${l}"
 done <<< "$(

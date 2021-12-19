@@ -62,7 +62,7 @@ ctr=0; while :; do
   (( ctr++ ))
 
   printf -- '[%s] Host: %s, Interval: %s, Count: %s\n' \
-    "$(date +"%y-%m-%d %H:%M:%S")" \
+    "$(get_ts)" \
     "${HOST}" \
     "${INTERVAL}" \
     "${COUNT}"
