@@ -4,6 +4,7 @@ A set of useful scripts. Available tools:
 
 * [ddns-updater](ddns-updater/readme.md)
 * pingo
+* [ssl-gen](ssl-gen/readme.md)
 
 ## Installation
 
