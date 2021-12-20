@@ -21,5 +21,14 @@ echo ". '/opt/varlog/scriptbox/hook.bash'" >> ~/.bashrc
 # (next time you login to bash the hook will be
 # loaded automatically from `.bashrc` file)
 . ~/.bashrc
-# use scripts `--help` flag to see the tools help
+```
+
+## Usage
+
+```bash
+# if main hook is sourced, you can use `scriptbox-help.sh`
+# to get familiar with the contents
+scriptbox-help.sh
+# use scripts `--help` flag to see the tools help. Example for `pingo.sh`:
+pingo.sh --help
 ```
