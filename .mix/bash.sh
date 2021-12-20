@@ -1,4 +1,4 @@
-scriptbox_add_path() {
+__scriptbox_add_path() {
   local bindir=""
   local prepend=0
 
