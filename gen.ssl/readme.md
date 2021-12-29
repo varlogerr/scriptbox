@@ -6,16 +6,16 @@ Old and naive set of scripts for self-signed ssl certificates generation. Not (o
 
 ```bash
 # explore the scripts
-ssl-gen-optfile.sh -h
-ssl-gen-ca.sh -h
-ssl-gen-client.sh -h
+gen.ssl-optfile.sh -h
+gen.ssl-ca.sh -h
+gen.ssl-client.sh -h
 # optionally generate and edit an option file
 # and use it for certs generation
-ssl-gen-optfile.sh ~/options/ssl-gen.conf
-vi ~/options/ssl-gen.conf
-ssl-gen-ca.sh --optfile ~/options/ssl-gen.conf
-ssl-gen-client.sh --optfile ~/options/ssl-gen.conf
+gen.ssl-optfile.sh ~/options/gen.ssl.conf
+vi ~/options/gen.ssl.conf
+gen.ssl-ca.sh --optfile ~/options/ssl-gen.conf
+gen.ssl-client.sh --optfile ~/options/ssl-gen.conf
 # or without option file
-ssl-gen-ca.sh
-ssl-gen-client.sh
+gen.ssl-ca.sh
+gen.ssl-client.sh
 ```

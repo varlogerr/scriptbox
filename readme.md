@@ -5,7 +5,7 @@ A set of useful scripts. Available tools:
 * [ddns-updater](ddns-updater/readme.md)
 * [dim-puller](dim-puller/readme.md)
 * pingo
-* [ssl-gen](ssl-gen/readme.md)
+* [gen.ssl](gen.ssl/readme.md)
 
 ## Installation
 

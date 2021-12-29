@@ -30,12 +30,12 @@ print_help_demo() {
     [[ -n "${l}" ]] && echo "  ${l}"
   done <<< "
     # generate to stdout
-    ssl-gen-optfile.sh
+    gen.ssl-optfile.sh
     # generate to ~/options/ssl-gen.conf file
-    ssl-gen-optfile.sh > ~/options/ssl-gen.conf
+    gen.ssl-optfile.sh > ~/options/ssl-gen.conf
     # generate to ~/options/ssl-gen.conf file.
     # ~/options directory will be created if doesn't exist
-    ssl-gen-optfile.sh ~/options/ssl-gen.conf
+    gen.ssl-optfile.sh ~/options/ssl-gen.conf
   "
 }
 
