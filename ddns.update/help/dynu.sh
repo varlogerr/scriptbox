@@ -6,10 +6,10 @@ print_help_opts() {
   while read -r l; do
     [[ -n "${l}" ]] && echo "${l}"
   done <<< "
-    --user  - (required) account username
-    --pass  - (required) account password
-    --hosts - (optional) space separated hosts
-    --ip    - (optional) specific IP
+    --user    (required) account username
+    --pass    (required) account password
+    --hosts   (optional) space separated hosts
+    --ip      (optional) specific IP
   "
 }
 

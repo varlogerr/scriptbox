@@ -19,8 +19,8 @@ print_help_short() {
     $( while read -r l; do
       [[ -n "${l}" ]] && echo "${l}"
     done <<< "
-      -h, -?, --help - print help
-      --short-help   - print short help
+      -h, -?, --help  print help
+      --short-help    print short help
     ")
   "
 }

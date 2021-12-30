@@ -6,9 +6,9 @@ print_help_opts() {
   while read -r l; do
     [[ -n "${l}" ]] && echo "${l}"
   done <<< "
-    --pass  - (required) access token
-    --hosts - (required) space separated hosts
-    --ip    - (optional) specific IP
+    --pass    (required) access token
+    --hosts   (required) space separated hosts
+    --ip      (optional) specific IP
   "
 }
 
