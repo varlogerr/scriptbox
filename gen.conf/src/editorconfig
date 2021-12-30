@@ -1,23 +1,25 @@
+# all files
 [*]
-# most common
 insert_final_newline = true
 indent_size = 2
 indent_style = space
 end_of_line = lf
 charset = utf-8
+trim_trailing_whitespace = true
 
-# trim_trailing_whitespace = true
+# markdown
+[*.{md,mdx}]
+trim_trailing_whitespace = false
 
-# [*.md]
-# trim_trailing_whitespace = false
-
+## 
+## sample section
+## 
 # [{package,bower}.json]
 # indent_style = space
 # indent_size = 4
 
 # [{.eslintrc,.scss-lint.yml}]
 # indent_style = space
-
 
 # [*.{scss,sass}]
 # indent_style = space

@@ -2,8 +2,8 @@
 
 A set of useful scripts. Available tools:
 
-* [ddns-updater](ddns-updater/readme.md)
-* [dim-puller](dim-puller/readme.md)
+* [ddns.update](ddns.update/readme.md)
+* [dim.pull](dim.pull/readme.md)
 * pingo
 * [gen.ssl](gen.ssl/readme.md)
 

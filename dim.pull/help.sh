@@ -21,7 +21,7 @@ print_help() {
                     existed in the system before the pull
   "
 
-  local listfile="./${THE_SCRIPT_NAME%.*}.conf"
+  local listfile="./dim-pull.conf"
   local scriptname="$(basename "${THE_SCRIPT}")"
   echo
   echo "Demo:"

@@ -29,7 +29,7 @@ __scriptbox_add_path() {
       # prepend $PATH with $bindir
       export PATH="${bindir}${PATH:+:${PATH}}"
     else
-      # append ddns-update bin path to $PATH
+      # append $bindir to $PATH
       export PATH="${PATH:+${PATH}:}${bindir}"
     fi
   fi

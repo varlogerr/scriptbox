@@ -1,10 +1,12 @@
 print_help() {
+  local scriptname="$(basename "${THE_SCRIPT}")"
+
   echo "Generate basic configuration files."
   echo
 
   echo "Usage:"
-  echo "  $(basename "${THE_SCRIPT}") [TYPE]"
-  echo "  $(basename "${THE_SCRIPT}") -l"
+  echo "  ${scriptname} [TYPE]"
+  echo "  ${scriptname} -l"
 
   echo
 
@@ -16,8 +18,6 @@ print_help() {
     -l, --list  list available conf file types
   "
 
-  local listfile="./${THE_SCRIPT_NAME%.*}.conf"
-  local scriptname="$(basename "${THE_SCRIPT}")"
   echo
   echo "Demo:"
   while read -r l; do

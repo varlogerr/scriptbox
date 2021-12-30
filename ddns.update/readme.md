@@ -8,7 +8,7 @@ A set of scripts for DDNS updates. Supports multiple DDNS providers:
 ## Usage
 
 ```bash
-# explore the scripts (ddns-update-<provider>.sh)
+# explore the scripts (ddns.update-<provider>.sh)
 # and act accordingly
-ddns-update-duckdns.sh -h
+ddns.update-duckdns.sh -h
 ```
