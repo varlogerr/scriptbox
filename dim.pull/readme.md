@@ -7,8 +7,8 @@ Pull latest or all (currently hardcoded to 40 latest) images of a docker reposit
 ```bash
 # explore the script
 dim.pull.sh -h
-# set crontab to "pull-remove" all ubuntu images
-# each monday at 4 AM
+# set crontab to "pull-remove" 5 latest ubuntu
+# images each monday at 4 AM
 crontab - <<< \
-  "0 4 * * 1 dim.pull.sh -a -r ubuntu"   
+  "0 4 * * 1 dim.pull.sh -l 5 -r ubuntu"   
 ```

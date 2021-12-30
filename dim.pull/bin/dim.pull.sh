@@ -4,16 +4,16 @@ THE_SCRIPT="${BASH_SOURCE[0]}"
 THE_SCRIPT_NAME="$(basename "${THE_SCRIPT}")"
 TOOL_DIR="$(realpath "$(dirname "$(realpath "${THE_SCRIPT}")")/..")"
 
+page_size=1
+
 . "${TOOL_DIR}/help.sh"
 . "${TOOL_DIR}/../.mix/bootstrap.sh"
 
 OPTS=()
 
-page_sise=40
 listfiles=()
 imgs=''
 remove=0
-all=0
 
 # detect listfiles
 opt_n=1; while :; do
@@ -51,10 +51,17 @@ for f in "${listfiles[@]}"; do
 done
 
 # parse the rest of the options
-for opt in "${OPTS[@]}"; do
+opt_n=1; while :; do
+  [[ -z "${!opt_n+x}" ]] && break
+  opt="${!opt_n}"
+
   case "${opt}" in
-    -a|--all)
-      all=1
+    --limit=?*)
+      page_size="${!opt_n#*=}"
+      ;;
+    -l|--limit)
+      (( opt_n++ ))
+      page_size="${!opt_n}"
       ;;
     -r|--remove)
       remove=1
@@ -64,14 +71,16 @@ for opt in "${OPTS[@]}"; do
       imgs+="${opt}"
       ;;
   esac
+
+  (( opt_n++ ))
 done
 
 while read -r img_name; do
   [[ -z "${img_name}" ]] && continue
 
-  tags_url=https://registry.hub.docker.com/v2/repositories/${img_name}/tags?page_size=${page_sise}
+  tags_url=https://registry.hub.docker.com/v2/repositories/${img_name}/tags?page_size=${page_size}
   if ! grep -q '\/' <<< "${img_name}"; then
-    tags_url=https://hub.docker.com/v2/repositories/library/${img_name}/tags?page_size=${page_sise}
+    tags_url=https://hub.docker.com/v2/repositories/library/${img_name}/tags?page_size=${page_size}
   fi
 
   tags="$(
@@ -83,10 +92,6 @@ while read -r img_name; do
   if [[ -z "${tags}" ]]; then
     echo "No tags found for '${img_name}'" >&2
     continue
-  fi
-
-  if [[ ${all} -eq 0 ]]; then
-    tags="$(head -n 1 <<< "${tags}")"
   fi
 
   existing_imgs="$(

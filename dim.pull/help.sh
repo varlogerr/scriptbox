@@ -9,16 +9,15 @@ print_help() {
     grep -q '^\s*$' <<< "${l}" && continue
     echo "${l:2}"
   done <<< "
+    -f, --listfile  read images from a file, one image name
+                    per line, lines starting with \`#\` and
+                    empty lines are ignored
+    -l, --limit     (defaults to ${page_size}) how many tags back to
+                    pull. Don't use too high values
+    -r, --remove    (flag) remove the pulled image, unless
+                    it existed in the system before the
+                    pull
     -h, -?, --help  print this help
-    -f, --listfile  read images from a file, one image
-                    name per line, lines starting with
-                    \`#\` and empty lines are ignored
-    -a, --all       pull all tags. Without this flat
-                    only the latest image will be pulled,
-                    where latest means latest by upload
-                    date, not necessarily ':latest' tag
-    -r, --remove    remove the pulled image, unless it
-                    existed in the system before the pull
   "
 
   local listfile="./dim-pull.conf"
@@ -28,9 +27,9 @@ print_help() {
   while read -r l; do
     [[ -n "${l}" ]] && echo "  ${l}"
   done <<< "
-    # pull all tags of images from ${listfile},
+    # pull 5 tags of images from ${listfile},
     # plus ubuntu and delete them after pull
-    ${scriptname} -a -r -f ${listfile} ubuntu
+    ${scriptname} -l 5 -r -f ${listfile} ubuntu
     # pull latest version of ubuntu image
     ${scriptname} ubuntu
   "
