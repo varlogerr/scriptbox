@@ -20,7 +20,7 @@ OPTS_CA_CLIENT_COMMON="
     Example: --ca-file-prefix acme-
   --ca-phrase/ca-phrase
     CA pkey passphrase.
-    Can also be provided with SSL_GEN_CA_PHRASE
+    Can also be provided with GEN_SSL_CA_PHRASE
     environment variable (lowest presedence).
     Example: --ca-phrase changeme
   --optfile/optfile

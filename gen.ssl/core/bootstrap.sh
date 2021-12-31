@@ -1,9 +1,9 @@
-# 
+#
 # * print help
 # * parse optfile
 # * merge optfile KVs with inline KVs
 # * validate --force and --silent flags
-# 
+#
 
 print_help() {
   local first=0
@@ -104,6 +104,6 @@ merge_kv_and_optfile_opts
 
 { # try to get CA phrase env variable if not set yet
   if [[ -z "${PARSED_OPTS_KV[ca-phrase]}" ]]; then
-    PARSED_OPTS_KV[ca-phrase]="${SSL_GEN_CA_PHRASE}"
+    PARSED_OPTS_KV[ca-phrase]="${GEN_SSL_CA_PHRASE}"
   fi
 }
