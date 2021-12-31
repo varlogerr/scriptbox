@@ -21,7 +21,7 @@ __scriptbox_add_path() {
 
   if : \
     && [[ -n "${bindir}" ]] \
-    && ! tr ':' '\n' <<< "${PATH}" | sort | uniq \
+    && ! tr ':' '\n' <<< "${PATH}" \
       | grep -Fxq "${bindir}" \
   ; then
     # $bindir is not in the $PATH
