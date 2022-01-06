@@ -1,10 +1,8 @@
-__add_path_iife() {
+__iife_hook() {
   local projdir="$(dirname "$(realpath "${1}")")"
-  export SCRIPTBOX_PREPEND_PATH="${SCRIPTBOX_PREPEND_PATH:-0}"
   export SCRIPTBOX_BINDIR="${SCRIPTBOX_BINDIR:-${projdir}/bin}"
 
-  . "${projdir}/../.mix/bash.sh"
-  __scriptbox_add_path --bindir "${SCRIPTBOX_BINDIR}" \
-    --prepend ${SCRIPTBOX_PREPEND_PATH}
-} && __add_path_iife "${1:-${BASH_SOURCE[0]}}"
-unset __add_path_iife
+  . "${projdir}/../path/hook.bash"
+  path.append "${SCRIPTBOX_BINDIR}"
+} && __iife_hook "${BASH_SOURCE[0]}"
+unset __iife_hook
