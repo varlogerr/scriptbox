@@ -321,8 +321,8 @@ __envar.gen_pathfile() {
     # directory. The following will be resolved
     # to \$(dirname \$(realpath </path/to/pathfile>)
     :relative/path/to/env-path
-    # relative paths are resolved to $PWD
-    pelative/path/to/env-path
+    # relative paths are resolved to \$PWD
+    relative/path/to/env-path
   "
   return 0
 }
