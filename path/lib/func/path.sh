@@ -1,4 +1,5 @@
 path.append() {
+  __path.detect_help "${@}" && return 0
   local items="$(__path.prepare_items "${@}")"
 
   [[ -n "${items}" ]] && {
@@ -7,6 +8,7 @@ path.append() {
 }
 
 path.prepend() {
+  __path.detect_help "${@}" && return 0
   local items="$(__path.prepare_items "${@}")"
 
   [[ -n "${items}" ]] && {
@@ -15,6 +17,7 @@ path.prepend() {
 }
 
 path.ls() {
+  __path.detect_help "${@}" && return 0
   [[ -n "${PATH}" ]] && tr ':' '\n' <<< "${PATH}"
 }
 
@@ -46,4 +49,20 @@ __path.format_items() {
 __path.rm_existing_items() {
   local path_lines="$(path.ls)"
   grep -vFx "${path_lines}" <<< "${1}"
+}
+
+__path.detect_help() {
+  while :; do
+    [[ -z "${1+x}" ]] && return 1
+
+    case "${1}" in
+      -h|-\?|--help)  __path.print_help; return 0
+    esac
+
+    shift
+  done
+}
+
+__path.print_help() {
+  echo "Not implemented"
 }

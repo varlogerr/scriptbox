@@ -69,12 +69,15 @@ export -f envar.stack
 #   - - removed file
 #   + - addeds file
 export -f envar.status
+
 export -f __envar.bootstrap
 export -f __envar.checksum_files
+export -f __envar.func_help
+export -f __envar.gen_pathfile
 export -f __envar.help_desk
 export -f __envar.help_deskless
 export -f __envar.help_main
 export -f __envar.path_files
 export -f __envar.real
 export -f __envar.uniq
-export -f __envar.func_help
+export -f __envar.validate_options

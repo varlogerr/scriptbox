@@ -39,49 +39,10 @@ envar.source() {
     esac
   done
 
-  [[ -n "${inval}" ]] && {
-    echo "Invalid options:"
-    while read -r o; do
-      printf -- '%-2s%s\n' '' "${o}" >&2
-    done <<< "${inval}"
-    return 1
-  }
+  __envar.validate_options "${inval}" || return 1
+  __envar.gen_pathfile ${gen_pathfile} && return 0
 
-  [[ ${gen_pathfile} -eq 1 ]] && {
-    while read -r l; do
-      [[ -n "${l}" ]] && echo "# ${l}"
-    done <<< "
-      # absolute paths are resolved normally
-      /path/to/env-path
-      # prefixed with ':' resolved to pathfile
-      # directory. The following will be resolved
-      # to \$(dirname \$(realpath </path/to/pathfile>)
-      :relative/path/to/env-path
-      # relative paths are resolved to $PWD
-      pelative/path/to/env-path
-    "
-    return
-  }
-
-  local pathfiles_content="$(
-    while read -r pathfile; do
-      [[ -z "${pathfile}" ]] && continue
-      [[ ! -f "${pathfile}" ]] && continue
-
-      # exclude empty lines and lines
-      # starting with '#'
-      grep -v '^#' "${pathfile}" | grep -vFx '' \
-      | while read -r envrile; do
-        [[ "${envrile:0:1}" != ':' ]] && {
-          echo "${envrile}"
-          continue
-        }
-
-        local pathfile_dir="$(dirname "$(realpath -qms "${pathfile}")")"
-        echo "${pathfile_dir}/${envrile:1}"
-      done
-    done <<< "${pathfiles}"
-  )"
+  local pathfiles_content="$(__envar.parse_pathfiles "${pathfiles}")"
 
   req_path="$(
     printf '%s\n%s' "${req_path}" "${pathfiles_content}" \
@@ -335,4 +296,53 @@ __envar.bootstrap() {
     [[ -z "${f}" ]] && continue
     . "${f}"
   done <<< "$(envar.files)"
+}
+
+__envar.validate_options() {
+  [[ -n "${inval}" ]] && {
+    echo "Invalid options:"
+    while read -r o; do
+      printf -- '%-2s%s\n' '' "${o}" >&2
+    done <<< "${inval}"
+    return 1
+  }
+  return 0
+}
+
+__envar.gen_pathfile() {
+  [[ ${1} -ne 1 ]] && return 1
+
+  while read -r l; do
+    [[ -n "${l}" ]] && echo "# ${l}"
+  done <<< "
+    # absolute paths are resolved normally
+    /path/to/env-path
+    # prefixed with ':' resolved to pathfile
+    # directory. The following will be resolved
+    # to \$(dirname \$(realpath </path/to/pathfile>)
+    :relative/path/to/env-path
+    # relative paths are resolved to $PWD
+    pelative/path/to/env-path
+  "
+  return 0
+}
+
+__envar.parse_pathfiles() {
+  while read -r pathfile; do
+    [[ -z "${pathfile}" ]] && continue
+    [[ ! -f "${pathfile}" ]] && continue
+
+    # exclude empty lines and lines
+    # starting with '#'
+    grep -v '^#' "${pathfile}" | grep -vFx '' \
+    | while read -r envrile; do
+      [[ "${envrile:0:1}" != ':' ]] && {
+        echo "${envrile}"
+        continue
+      }
+
+      local pathfile_dir="$(dirname "$(realpath -qms "${pathfile}")")"
+      echo "${pathfile_dir}/${envrile:1}"
+    done
+  done <<< "${1}"
 }

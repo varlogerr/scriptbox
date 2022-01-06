@@ -4,8 +4,11 @@ A set of useful scripts. Available tools:
 
 * [ddns.update](ddns.update/readme.md)
 * [dim.pull](dim.pull/readme.md)
-* pingo
+* envar
+* gen.conf
 * [gen.ssl](gen.ssl/readme.md)
+* path
+* pingo
 
 ## Installation
 
