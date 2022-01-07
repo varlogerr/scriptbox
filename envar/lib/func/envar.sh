@@ -283,7 +283,7 @@ __envar.checksum_files() {
       return 1
     fi
 
-    chsum="$(sha1sum "${f}" | cut -d' ' -f 1)"
+    chsum="$(sha1sum "$(realpath "${f}")" | cut -d' ' -f 1)"
     echo "${chsum}:${f}"
   done <<< "${inp}"
 }
