@@ -1,116 +1,102 @@
 envar.source() {
   __envar.func_help "${FUNCNAME[0]}" "${@}" && return
 
-  local deskless=0
-  local name="${ENVAR_NAME}"
-  local req_path="${ENVAR_REQ}"
-  local path
-  local files
-  local pathfiles
-  local gen_pathfile=0
+  declare -A OPTS=(
+    [deskless]=0
+    [name]="${ENVAR_NAME}"
+    [req_envs]=
+    [pathfiles]=
+    [gen_pathfile]=0
+    [inval]=
+  )
+  __envar.parse_source_opts_to_global "${@}"
+  __envar.fail_invalid_opts "${OPTS[inval]}" || return 1
+  __envar.gen_pathfile "${OPTS[gen_pathfile]}" && return 0
+  __envar.parse_pathfiles_to_global "${OPTS[pathfiles]}"
+  OPTS[req_envs]="$(__envar.abspath "${OPTS[req_envs]}")"
+  OPTS[req_envs]="$(__envar.merge "${ENVAR_REQ}" "${OPTS[req_envs]}")"
 
-  # parse params
-  local eopt=0
-  local opt_n=0
-  local inval
-  while :; do
-    (( opt_n++ ))
-    opt="${!opt_n}"
-    # break on end of params and skip empty params
-    [[ -z "${!opt_n+x}" ]] && break
-    grep -qx '\s*' <<< "${!opt_n}" && continue
-
-    # add path
-    [[ ${eopt} == 1 ]] || [[ ${opt:0:1} != '-' ]] && {
-      req_path="${req_path:+${req_path}$'\n'}${opt}"
-      continue
-    }
-
-    # parse options
-    case "${opt}" in
-      -D|--deskless)  deskless=1 ;;
-      --name=?*)      name="${opt#*=}" ;;
-      -n|--name)      (( opt_n++ )); name="${!opt_n}" ;;
-      --pathfile=?*)  pathfiles="${pathfiles:+${pathfiles}$'\n'}${opt#*=}" ;;
-      -f|--pathfile)  (( opt_n++ )); pathfiles="${pathfiles:+${pathfiles}$'\n'}${!opt_n}" ;;
-      --gen-pathfile) gen_pathfile=1 ;;
-      --)             eopt=1 ;;
-      *)              inval="${inval:+${inval}$'\n'}${opt}" ;;
-    esac
-  done
-
-  __envar.validate_options "${inval}" || return 1
-  __envar.gen_pathfile ${gen_pathfile} && return 0
-
-  local pathfiles_content="$(__envar.parse_pathfiles "${pathfiles}")"
-
-  req_path="$(
-    printf '%s\n%s' "${req_path}" "${pathfiles_content}" \
-    | grep -vFx ''
+  OPTS[envs]="$(__envar.real "${OPTS[req_envs]}")"
+  OPTS[env_files]="$(__envar.env_files "${OPTS[envs]}")"
+  OPTS[hashed_files]="$(__envar.hash_files "${OPTS[env_files]}")"
+  OPTS[all_files]="$(
+    printf '%s\n%s' "${ENVAR_ALL_FILES}" "$(
+      grep -vFx "${ENVAR_ALL_FILES}" <<< "${OPTS[env_files]}"
+    )" | grep -vFx ''
   )"
+  OPTS[stack]="@${OPTS[name]}${OPTS[all_files]:+$'\n'$(
+    sed 's/^/#/g' <<< "${OPTS[all_files]}"
+  )}"
 
-  # unique abspath for requested path
-  req_path="$( while read -r p; do
-    realpath -qms -- "${p}"
-  done <<< "${req_path}"  | __envar.uniq )"
+  [[ ${OPTS[deskless]} -eq 0 ]] && {
+    OPTS[stack]+="${ENVAR_STACK:+$'\n'${ENVAR_STACK}}"
 
-  # put existing path
-  path="$(__envar.real "${req_path}")"
-  # collect files to source
-  # and prepend them with checksum
-  files="$(__envar.path_files "${path}")"
-  local hashed_files="$(__envar.checksum_files "${files}")"
-
-  [[ ${deskless} -eq 0 ]] && {
-    local stack="@${name:-(anonymous)}"
-    stack+="${files:+$'\n'$(sed 's/^/#/g' <<< "${files}")}"
-    stack+="${ENVAR_STACK:+$'\n'${ENVAR_STACK}}"
-
-    ENVAR_NAME="${name}" \
-    ENVAR_REQ="${req_path}" \
-    ENVAR_PATH="${path}" \
-    ENVAR_FILES="${hashed_files}" \
-    ENVAR_BASE_PS1="${ENVAR_BASE_PS1:-${PS1}}" \
-    ENVAR_STACK="${stack}" bash
+    ENVAR_NAME="${OPTS[name]}" \
+    ENVAR_REQ="${OPTS[req_envs]}" \
+    ENVAR_ENVS="${OPTS[envs]}" \
+    ENVAR_FILES="${OPTS[hashed_files]}" \
+    ENVAR_ALL_FILES="${OPTS[all_files]}" \
+    ENVAR_STACK="${OPTS[stack]}" \
+    ENVAR_BASE_PS1="${ENVAR_BASE_PS1:-${PS1}}" bash
     return
   }
 
-  # we need to add newly added files to
-  # latest stack block
-  [[ -n "${ENVAR_STACK}" ]] && {
-    local head_len="$(envar.stack -v -c 1 | wc -l)"
-    local stack_tail="$(tail -n +$((head_len + 1)) <<< "${ENVAR_STACK}")"
-    local head_files="$(envar.files)"
-    local new_files="$(grep -vFx -e "${head_files}" <<< "${files}")"
+  local titles_lines="$(grep -n '^@' <<< "${ENVAR_STACK}" | cut -d: -f1)"
+  if [[ $(wc -l <<< "${titles_lines}") -gt 1 ]]; then
+    # we need to add newly added files to
+    # latest stack block
+    OPTS[stack]+=$'\n'"$(
+      title2_line="$(head -n 2 <<< "${titles_lines}" | tail -n 1)"
+      tail -n +$((title2_line)) <<< "${ENVAR_STACK}"
+    )"
+  fi
 
-    [[ (-n "${head_files}" && -n "${new_files}") ]] && head_files+=$'\n'
-    head_files+="${new_files}"
-
-    local new_stack="@${name}"
-    new_stack+="${head_files:+$'\n'$(sed 's/^/#/g' <<< "${head_files}")}"
-    new_stack+="${stack_tail:+$'\n'${stack_tail}}"
-
-    export ENVAR_STACK="${new_stack}"
-  }
-
-  export ENVAR_NAME="${name}"
-  export ENVAR_REQ="${req_path}"
-  export ENVAR_PATH="${path}"
-  export ENVAR_FILES="${hashed_files}"
+  export ENVAR_NAME="${OPTS[name]}"
+  export ENVAR_REQ="${OPTS[req_envs]}"
+  export ENVAR_ENVS="${OPTS[envs]}"
+  export ENVAR_FILES="${OPTS[hashed_files]}"
+  export ENVAR_ALL_FILES="${OPTS[all_files]}"
+  export ENVAR_STACK="${OPTS[stack]}"
   export ENVAR_BASE_PS1="${ENVAR_BASE_PS1:-${PS1}}"
 
   __envar.bootstrap
 }
+# Source env paths. If a path is a directory
+# all '*.sh' files will be loaded, for file
+# paths extension doesn't matter
+#
+# Available options:
+#   -D, --deskless (flag)
+#     Run in deskless mode, i.e new bash process
+#     won't be created
+#   -f, --pathfile (multiple)
+#     Read env paths list from a file. Empty
+#     lines and lines starting with '#' are
+#     ignored. Non-absolut paths are resolved
+#     relatively to $PWD. Paths prefixed with
+#     ':' are resolved relatively to pathfile
+#     directory. Example:
+#       # resolves to $PWD
+#       ./envdir/envfile1.sh
+#       # resolves to pathfile directory
+#       :/envdir/envfile2.sh
+#   --gen-pathfile (flag)
+#     Generate pathfile dummy to stdout
+#   -n, --name
+#     Name for the environment
+#   --
+#     End of options
+export -f envar.source
 
 envar.status() {
   __envar.func_help "${FUNCNAME[0]}" "${@}" && return
 
   [[ -z "${ENVAR_REQ}" ]] && return
 
-  # put existing path
   local path="$(__envar.real "${ENVAR_REQ}")"
-  # collect unique files to source
-  local files="$(__envar.path_files "${path}" | __envar.checksum_files)"
+  local files="$(__envar.env_files "${path}" | __envar.hash_files)"
+  [[ (-z "${path}" && -z "${files}") ]] && return
+
   # {new_hash}:{file}
   local res1="$(
     join -t: -j1 1 -j2 2 -a 1 -o2.1,1.1 \
@@ -155,12 +141,23 @@ envar.status() {
     printf -- '%-2s%s\n' ' ' "${file}"
   done <<< "${res2}"
 }
+# Print current environment files
+# status
+#
+# Statuses:
+#   * - changed file
+#   - - removed file
+#   + - addeds file
+export -f envar.status
 
 envar.req() {
   __envar.func_help "${FUNCNAME[0]}" "${@}" && return
 
   [[ -n "${ENVAR_REQ}" ]] && echo "${ENVAR_REQ}"
 }
+# List all env paths requested
+# by user
+export -f envar.req
 
 envar.stack() {
   __envar.func_help "${FUNCNAME[0]}" "${@}" && return
@@ -195,37 +192,58 @@ envar.stack() {
   }
 
   [[ ${verbose} -eq 0 ]] && {
-    grep '^@' <<< "${entries}" | sed 's/^@//g'
+    grep --color=never '^@' <<< "${entries}"
     return
   }
 
-  sed 's/^@//g' <<< "${entries}"
+  echo "${entries}"
 }
+# Print environments stack
+#
+# Available options:
+#   -c, --count
+#       Entries count
+#   -v, --verbose (flag)
+#       Print with sourced files.
+#       Will show all files, that
+#       has been sourced during
+#       the session (including
+#       removed ones)
+export -f envar.stack
 
 envar.reload() {
   __envar.func_help "${FUNCNAME[0]}" "${@}" && return
 
   [[ -n "${ENVAR_REQ}" ]] && envar.source -D
 }
+# Reload env paths. This will
+# reload sourced env paths and
+# pending ones if they got created
+export -f envar.reload
 
 envar.pending() {
   __envar.func_help "${FUNCNAME[0]}" "${@}" && return
 
-  local pending="$(grep -vFx -e "${ENVAR_PATH}" <<< "${ENVAR_REQ}")"
-  [[ -n "${pending}" ]] && echo "${pending}"
+  grep -vFx -e "${ENVAR_ENVS}" <<< "${ENVAR_REQ}"
 }
+# List pending env paths
+export -f envar.pending
 
 envar.prune() {
   __envar.func_help "${FUNCNAME[0]}" "${@}" && return
 
-  [[ -n "${ENVAR_REQ+x}" ]] && ENVAR_REQ="${ENVAR_PATH}"
+  [[ -n "${ENVAR_REQ+x}" ]] && ENVAR_REQ="${ENVAR_ENVS}"
 }
+# Prune pending env paths
+export -f envar.prune
 
-envar.path() {
+envar.ls() {
   __envar.func_help "${FUNCNAME[0]}" "${@}" && return
 
-  [[ -n "${ENVAR_PATH}" ]] && echo "${ENVAR_PATH}"
+  [[ -n "${ENVAR_ENVS}" ]] && echo "${ENVAR_ENVS}"
 }
+# List currently loaded env paths
+export -f envar.ls
 
 envar.files() {
   __envar.func_help "${FUNCNAME[0]}" "${@}" && return
@@ -234,59 +252,30 @@ envar.files() {
 
   cut -d: -f2- <<< "${ENVAR_FILES}"
 }
+# List existing loaded files
+export -f envar.files
 
-__envar.uniq() {
-  # grabbed from here:
-  # https://unix.stackexchange.com/questions/194780/remove-duplicate-lines-while-keeping-the-order-of-the-lines
-  local inp="${1}"
-  [[ -p /dev/stdin ]] && inp="$(cat -)"
+envar.help() {
+  __envar.func_help "${FUNCNAME[0]}" "${@}" && return
 
-  tac <<< "${inp}" | cat -n | sort -k2 -k1n \
-  | uniq -f1 | sort -nk1,1 | cut -f2- | tac
+  while :; do
+    [[ -z "${1+x}" ]] && break
+
+    case "${1}" in
+      --demo)     __envar.help_demo; return ;;
+    esac
+
+    shift
+  done
+
+  __envar.help_main
 }
-
-__envar.real() {
-  local inp="${1}"
-  [[ -p /dev/stdin ]] && inp="$(cat -)"
-
-  while read -r p; do
-    [[ -z "${p}" ]] && continue
-    [[ -d "${p}" || -f "${p}" ]] && echo "${p}"
-  done <<< "${inp}"
-}
-
-__envar.path_files() {
-  local inp="${1}"
-  [[ -p /dev/stdin ]] && inp="$(cat -)"
-
-  local fp
-  while read -r p; do
-    [[ -z "${p}" ]] && continue
-
-    [[ -f "${p}" ]] && fp="${p}" \
-      || fp="$(find -L "${p}" -type f -name "*.sh" | sort -n)"
-
-    echo "${fp}"
-  done <<< "${1}"
-}
-
-__envar.checksum_files() {
-  local inp="${1}"
-  [[ -p /dev/stdin ]] && inp="$(cat -)"
-
-  local chsum
-  while read -r f; do
-    [[ -z "${f}" ]] && continue
-
-    if [[ (-z "${f}" || ! -f "${f}") ]]; then
-      echo "${FUNCNAME[0]}: '${f}' is not a file!" >&2
-      return 1
-    fi
-
-    chsum="$(sha1sum "$(realpath "${f}")" | cut -d' ' -f 1)"
-    echo "${chsum}:${f}"
-  done <<< "${inp}"
-}
+# Print help
+#
+# Available options:
+#   --desk      Print desk usage
+#   --deskless  Print deskless usage
+export -f envar.help
 
 __envar.bootstrap() {
   [[ (-n "${ENVAR_BASE_PS1}" && -n "${ENVAR_NAME}") ]] \
@@ -297,52 +286,4 @@ __envar.bootstrap() {
     . "${f}"
   done <<< "$(envar.files)"
 }
-
-__envar.validate_options() {
-  [[ -n "${inval}" ]] && {
-    echo "Invalid options:"
-    while read -r o; do
-      printf -- '%-2s%s\n' '' "${o}" >&2
-    done <<< "${inval}"
-    return 1
-  }
-  return 0
-}
-
-__envar.gen_pathfile() {
-  [[ ${1} -ne 1 ]] && return 1
-
-  while read -r l; do
-    [[ -n "${l}" ]] && echo "# ${l}"
-  done <<< "
-    # absolute paths are resolved normally
-    /path/to/env-path
-    # prefixed with ':' resolved to pathfile
-    # directory. The following will be resolved
-    # to \$(dirname \$(realpath </path/to/pathfile>)
-    :relative/path/to/env-path
-    # relative paths are resolved to \$PWD
-    relative/path/to/env-path
-  "
-  return 0
-}
-
-__envar.parse_pathfiles() {
-  while read -r pathfile; do
-    [[ -z "${pathfile}" ]] && continue
-    [[ ! -f "${pathfile}" ]] && continue
-
-    # exclude empty lines and lines
-    # starting with '#'
-    grep -v '^#' "${pathfile}" | grep -vFx '' \
-    | while read -r envrile; do
-      [[ "${envrile:0:1}" != ':' ]] && {
-        echo "${envrile}"
-        continue
-      }
-
-      local pathfile_dir="$(dirname "$(realpath -qms "${pathfile}")")"
-      echo "${pathfile_dir}/${envrile:1}"
-    done
-  done <<< "${1}"
-}
+export -f __envar.bootstrap
