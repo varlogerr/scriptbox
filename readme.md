@@ -38,3 +38,11 @@ scriptbox-help.sh
 # use scripts `--help` flag to see the tools help. Example for `pingo.sh`:
 pingo.sh --help
 ```
+
+## Alternative hook
+
+As `envar` and `path` are essential hooks they are united in a single bash hook.
+
+```sh
+echo ". '/opt/varlog/scriptbox/base-hook.bash'" >> ~/.bashrc
+```
