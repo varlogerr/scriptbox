@@ -118,9 +118,9 @@ __envar.abspath() {
   local inp="${1}"
   [[ -p /dev/stdin ]] && inp="$(cat -)"
 
-  while read -r p; do
+  printf '%s' "${inp}" | while read -r p; do
     realpath -qms -- "${p}"
-  done <<< "${inp}"
+  done
 }
 export -f __envar.abspath
 
