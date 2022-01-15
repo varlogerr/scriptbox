@@ -94,7 +94,9 @@ envar.status() {
   [[ -z "${ENVAR_REQ}" ]] && return
 
   local path="$(__envar.real "${ENVAR_REQ}")"
-  local files="$(__envar.env_files "${path}" | __envar.hash_files)"
+  local files="$(
+    __envar.hash_files "$(__envar.env_files "${path}")"
+  )"
   [[ (-z "${path}" && -z "${files}") ]] && return
 
   # {new_hash}:{file}

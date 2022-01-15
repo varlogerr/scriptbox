@@ -115,41 +115,29 @@ __envar.parse_pathfiles_to_global() {
 export -f __envar.parse_pathfiles_to_global
 
 __envar.abspath() {
-  local inp="${1}"
-  [[ -p /dev/stdin ]] && inp="$(cat -)"
-
-  printf '%s' "${inp}" | while read -r p; do
-    realpath -qms -- "${p}"
-  done
+  while read -r p; do
+    [[ -n "${p}" ]] && realpath -qms -- "${p}"
+  done <<< "${1}"
 }
 export -f __envar.abspath
 
 __envar.uniq() {
-  local inp="${1}"
-  [[ -p /dev/stdin ]] && inp="$(cat -)"
-
   # grabbed from here:
   # https://unix.stackexchange.com/questions/194780/remove-duplicate-lines-while-keeping-the-order-of-the-lines
-  tac <<< "${inp}" | cat -n | sort -k2 -k1n \
+  tac <<< "${1}" | cat -n | sort -k2 -k1n \
   | uniq -f1 | sort -nk1,1 | cut -f2- | tac
 }
 export -f __envar.uniq
 
 __envar.real() {
-  local inp="${1}"
-  [[ -p /dev/stdin ]] && inp="$(cat -)"
-
   while read -r p; do
     [[ -z "${p}" ]] && continue
     [[ -d "${p}" || -f "${p}" ]] && echo "${p}"
-  done <<< "${inp}"
+  done <<< "${1}"
 }
 export -f __envar.real
 
 __envar.env_files() {
-  local inp="${1}"
-  [[ -p /dev/stdin ]] && inp="$(cat -)"
-
   local fp
   while read -r p; do
     [[ -z "${p}" ]] && continue
@@ -163,15 +151,12 @@ __envar.env_files() {
 export -f __envar.env_files
 
 __envar.hash_files() {
-  local inp="${1}"
-  [[ -p /dev/stdin ]] && inp="$(cat -)"
-
   local chsum
   while read -r f; do
     [[ (-z "${f}" || ! -f "${f}") ]] && continue
 
     chsum="$(sha1sum "$(realpath "${f}")" | cut -d' ' -f 1)"
     echo "${chsum}:${f}"
-  done <<< "${inp}"
+  done <<< "${1}"
 }
 export -f __envar.hash_files
